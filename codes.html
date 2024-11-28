@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Examples</title>
+    <link rel="stylesheet" href="code.css">
+</head>
+<body>
+    <h1>Python Codes</h1>
+    <p><b>Parallel Algorithm</b></p>
+
+    <!-- Code Block 1 -->
+    <div class="code-container">
+        <button class="copy-button" onclick="copyCode('code-block-1')">Copy Code</button>
+        <pre id="code-block-1">
+import multiprocessing
+
+def sum_of_squares(numbers, result, index):
+    total = sum(x * x for x in numbers)
+    result[index] = total
+
+def parallel_sum_of_squares(numbers, num_processes):
+    chunk_size = len(numbers) // num_processes
+    chunks = [numbers[i * chunk_size : (i + 1) * chunk_size] for i in range(num_processes)]
+
+    if len(numbers) % num_processes != 0:
+        chunks[-1].extend(numbers[num_processes * chunk_size:])
+
+    result = multiprocessing.Array('i', num_processes)
+    processes = []
+    for i in range(num_processes):   
+        p = multiprocessing.Process(target=sum_of_squares, args=(chunks[i], result, i))
+        processes.append(p)
+        p.start()
+
+    for p in processes:
+        p.join()
+
+    total_sum = sum(result)
+    return total_sum
+
+if __name__ == "__main__":
+    n = int(input("How many numbers?: "))
+    numbers = list(range(1, n+1))
+    num_processes = multiprocessing.cpu_count()
+
+    total = parallel_sum_of_squares(numbers, num_processes)
+    print(f"The sum of squares is : {total}")
+        </pre>
+    </div>
+
+    <p><b>Mutual Exclusion Algorithm</b></p>
+    <!-- Code Block 2 -->
+    <div class="code-container">
+        <button class="copy-button" onclick="copyCode('code-block-2')">Copy Code</button>
+        <pre id="code-block-2">
+import time
+
+cs = False
+pro = 0  
+run = 5.0  
+t1 = time.time() - run  
+
+while True:
+    key = input("Press a key (except 'q') to enter a process: ")
+    if key == 'q':
+        print("Exiting..")
+        break
+
+    if cs:
+        t2 = time.time()
+        if (t2-t1) > run:
+            print(f"Process {pro - 1} exited critical section.")
+            cs = False
+        else:
+            print("Error: Another process is currently executing!")
+    else:
+        print(f"Process {pro} entered critical section")
+        cs = True
+        pro += 1
+        t1 = time.time()
+        </pre>
+    </div>
+
+    <p><b>Clock Synchronization Algorithm</b></p>
+    <!-- Code Block 3 -->
+    <div class="code-container">
+        <button class="copy-button" onclick="copyCode('code-block-3')">Copy Code</button>
+        <pre id="code-block-3">
+from datetime import datetime, timedelta
+
+def berkeley_algo(server_time, time1, time2):
+    print("Server Clock =", server_time)
+    print("Client Clock 1=", time1)
+    print("Client Clock 2 =", time2)
+    
+    time_format = "%H:%M"
+    try:
+        s = datetime.strptime(server_time, time_format)   
+        t1 = datetime.strptime(time1, time_format)       
+        t2 = datetime.strptime(time2, time_format)
+        
+        st1 = (t1 - s).total_seconds()
+        st2 = (t2 - s).total_seconds()
+        print("t1 - s =", st1)
+        print("t2 - s =", st2)
+        
+        avg_offset = (st1 + st2) / 2
+        print("(st1 + st2) / 2 =", avg_offset)
+
+        adj_server = s + timedelta(seconds=avg_offset)
+        adj_t1 = t1 - timedelta(seconds=st1 - avg_offset)
+        adj_t2 = t2 - timedelta(seconds=st2 - avg_offset)
+        
+        print("Synchronized Server Clock =", adj_server.strftime(time_format))
+        print("Synchronized Client 1 Clock =", adj_t1.strftime(time_format))
+        print("Synchronized Client 2 Clock =", adj_t2.strftime(time_format))
+        
+    except ValueError as e:
+        print("Error parsing time:", e)
+
+berkeley_algo("10:00", "10:05", "10:03")
+        </pre>
+    </div>
+
+    <p><b>Name Resolution Protocol</b></p>
+    <!-- Code Block 4 -->
+    <div class="code-container">
+        <button class="copy-button" onclick="copyCode('code-block-4')">Copy Code</button>
+        <pre id="code-block-4">
+class NameResolver:
+    def __init__(self):
+        self.records = {
+            "example.com": "33.123.243.24",
+            "openai.com": "12.233.32.44",
+            "google.com": "54.234.678.98"
+        }
+        self.cache = {}
+
+    def resolve(self, hostname):
+        if hostname in self.cache:
+            return self.cache[hostname]
+        ip_address = self.records.get(hostname)
+        if ip_address:
+            self.cache[hostname] = ip_address
+            return ip_address
+        else:
+            return None  
+
+resolver = NameResolver()
+hostnames = ["example.com", "openai.com", "google.com", "not_exist.com"]
+
+for hostname in hostnames:
+    ip = resolver.resolve(hostname)
+    if ip:
+        print(f"{hostname} -> resolves to --> {ip}")
+    else:
+        print(f"{hostname} does not exist")
+        </pre>
+    </div>
+
+
+    <p><b>Load Balancing Algorithm</b></p>
+
+    <!-- Code Block 5 -->
+    <div class="code-container">
+        <button class="copy-button" onclick="copyCode('code-block-5')">Copy Code</button>
+        <pre id="code-block-5">
+            #Load Balancing Algorithm
+            class LoadBalancer:
+                def __init__(self, servers):
+                    self.servers = servers
+                    self.index = 0
+            
+                def get_next_server(self):
+                    server = self.servers[self.index]
+                    self.index = (self.index + 1) % len(self.servers)
+                    return server
+            
+                def add_server(self, server):
+                    self.servers.append(server)
+            
+                def remove_server(self, server):
+                    self.servers.remove(server)
+                    # if self.index >= len(self.servers):
+                    #     self.index = 0
+            
+            if __name__ == "__main__":
+                servers = ["server1", "server2", "server3"]
+                load_balancer = LoadBalancer(servers)
+                for i in range(10):
+                    print(f"Request {i + 1}: {load_balancer.get_next_server()}")
+            
+        </pre>
+    </div>
+
+    <p><b>Scalability In DC</b></p>
+    <!-- Code Block 6 -->
+    <div class="code-container">
+        <button class="copy-button" onclick="copyCode('code-block-6')">Copy Code</button>
+        <pre id="code-block-6">
+#Scalability In distributed environment
+import time
+import random
+from queue import Queue
+from threading import Thread
+
+class WorkerNode:
+    def __init__(self, id):
+        self.id = id
+
+    def process_task(self, task):
+        print(f"Node {self.id} processing: {task}")
+        time.sleep(1)  # Simulate task processing time
+        print(f"Node {self.id} finished: {task}")
+
+def worker(task_queue, worker_id):
+    while True:
+        task = task_queue.get()
+        if task is None:  # Exit condition
+            break
+        WorkerNode(worker_id).process_task(task)
+        task_queue.task_done()
+
+#Main Function
+task_queue = Queue()
+num_workers = 2
+threads = []
+
+# Create worker threads
+for i in range(num_workers):
+    t = Thread(target=worker, args=(task_queue, i))
+    t.start()
+    threads.append(t)
+
+# Create tasks
+tasks = [f"Task {i}" for i in range(5)]
+
+# Add tasks to the queue
+for task in tasks:
+    task_queue.put(task)
+
+# Wait for all tasks to be processed
+task_queue.join()
+
+# Stop workers
+for _ in range(num_workers):
+    task_queue.put(None)  # Exit signal to workers
+
+for t in threads:
+    t.join()
+
+print("All tasks processed.")
+
+                    </pre>
+        </pre>
+    </div>
+
+    <p><b>Deadlock in Dc</b></p>
+    <!-- Code Block 7 -->
+    <div class="code-container">
+        <button class="copy-button" onclick="copyCode('code-block-7')">Copy Code</button>
+        <pre id="code-block-7">
+            #implement Distributed Deadlock
+            class Resource:
+                def __init__(self, name):
+                    self.name = name
+                    self.holder = None
+            
+            class Process:
+                def __init__(self, name):
+                    self.name = name
+                    self.held_resources = []
+            
+                def request_resource(self, resource):
+                    if resource.holder is None:
+                        resource.holder = self
+                        self.held_resources.append(resource)
+                        print(f"{self.name} acquired {resource.name}.")
+                    else:
+                        print(f"{self.name} is waiting for {resource.name} held by {resource.holder.name}.")
+            
+            def detect_deadlock(processes):
+                for process in processes:
+                    if len(process.held_resources) >= 2:
+                        print(f"Potential deadlock detected with {process.name} holding {len(process.held_resources)} resources.")
+            
+            r1, r2 = Resource("R1"), Resource("R2")
+            p1, p2 = Process("P1"), Process("P2")
+            
+            p1.request_resource(r1)  
+            p1.request_resource(r2)  
+            p2.request_resource(r1)  
+            p2.request_resource(r2)  
+            
+            detect_deadlock([p1, p2])
+            
+        </pre>
+    </div>
+
+    <p><b>IPC</b></p>
+    <!-- Code Block 8 -->
+    <div class="code-container">
+        <button class="copy-button" onclick="copyCode('code-block-8')">Copy Code</button>
+        <pre id="code-block-8">
+            #server.py
+
+            from socket import socket,AF_INET,SOCK_STREAM
+            #this creates object using IPV4 and TCP Stream
+            server_socket = socket(AF_INET, SOCK_STREAM)
+            server_socket.bind(('localhost', 6666))
+            server_socket.listen(1)
+            print("Server Started")
+            
+            while True:
+                client_socket, addr = server_socket.accept()
+                print(f"Connection from {addr} has been established.")
+            
+                try:
+                    a = int.from_bytes(client_socket.recv(4), byteorder='big')   #int.from_bytes() converts these bytes into integers
+                    b = int.from_bytes(client_socket.recv(4), byteorder='big')  #byteorder='big' indicating big-endian byte order.
+            
+                    print("Sum:", a + b)
+                except (ValueError, IndexError) as e:
+                    print("Error receiving data:", e)
+            
+                client_socket.close()
+
+                #client.py
+
+                import socket
+                import threading
+                def receive_messages(client_socket):
+                    while True:
+                        try:
+                            message = client_socket.recv(1024).decode('utf-8')
+                            if message:
+                                print(message)
+                            else:
+                                break
+                        except:
+                            break
+
+                client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                client.connect(('127.0.0.1', 12345))
+                thread = threading.Thread(target=receive_messages, args=(client,))
+                thread.start()
+                while True:
+                    message = input("")
+                    if message.lower() == 'exit':
+                        break
+                    client.send(message.encode('utf-8'))
+                client.close()       
+            
+        </pre>
+    </div>
+
+    <p><b>RPC</b></p>
+    <!-- Code Block 9 -->
+    <div class="code-container">
+        <button class="copy-button" onclick="copyCode('code-block-9')">Copy Code</button>
+        <pre id="code-block-9">
+            #Server.py
+            from xmlrpc.server import SimpleXMLRPCServer, SimpleXMLRPCRequestHandler
+
+            # Restrict the server to only handle requests to /RPC2
+            class RequestHandler(SimpleXMLRPCRequestHandler):
+                rpc_paths = ('/RPC2',)
+            
+            # Create the server
+            with SimpleXMLRPCServer(('localhost', 9000), requestHandler=RequestHandler) as server:
+                
+                # Register some functions
+                def add(x, y):
+                    return x + y
+            
+                def subtract(x, y):
+                    return x - y
+            
+                def multiply(x, y):
+                    return x * y
+            
+                def divide(x, y):
+                    if y == 0:
+                        return "Error: Division by zero."
+                    return x / y
+            
+                # Register the functions
+                server.register_function(add, 'add')
+                server.register_function(subtract, 'subtract')
+                server.register_function(multiply, 'multiply')
+                server.register_function(divide, 'divide')
+            
+                print("Server is running on localhost:9000...")
+                
+                # Run the server's main loop
+                server.serve_forever()
+
+                #client.py
+                from xmlrpc.client import ServerProxy
+
+                with ServerProxy("http://localhost:9000/RPC2") as proxy:
+                    print("3 + 5 =", proxy.add(3, 5))
+                    print("10 - 4 =", proxy.subtract(10, 4))
+                    print("7 * 6 =", proxy.multiply(7, 6))
+                    print("20 / 4 =", proxy.divide(20, 4))
+                    print("20 / 0 =", proxy.divide(20, 0))       
+        </pre>
+    </div>
+
+    <p><b>Group Communication</b></p>
+    <!-- Code Block 10 -->
+    <div class="code-container">
+        <button class="copy-button" onclick="copyCode('code-block-10')">Copy Code</button>
+        <pre id="code-block-10">
+            #Server.py
+            import socket
+            import threading
+            # List to keep track of connected clients
+            clients = []
+            def handle_client(client_socket, addr):
+                print(f"[NEW CONNECTION] {addr} connected.")
+                clients.append(client_socket)
+                while True:
+                    try:
+                        message = client_socket.recv(1024).decode('utf-8')
+                        if message:
+                            print(f"[{addr}] {message}")
+                            broadcast(message, client_socket)
+                        else:
+                            break
+                    except:
+                        break
+                print(f"[DISCONNECT] {addr} disconnected.")
+                clients.remove(client_socket)
+                client_socket.close()
+
+            def broadcast(message, client_socket):
+                for client in clients:
+                    if client != client_socket:
+                        try:
+                            client.send(message.encode('utf-8'))
+                        except:
+                            client.close()
+                            clients.remove(client)
+
+
+            server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            server.bind(('0.0.0.0', 12345))
+            server.listen(5)
+            print("[STARTING] Server is starting...")
+            while True:
+                client_socket, addr = server.accept()
+                thread = threading.Thread(target=handle_client, args=(client_socket, addr))
+                thread.start()
+
+            #client.py
+            import socket
+            import threading
+            def receive_messages(client_socket):
+                while True:
+                    try:
+                        message = client_socket.recv(1024).decode('utf-8')
+                        if message:
+                            print(message)
+                        else:
+                            break
+                    except:
+                        break
+
+            client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            client.connect(('127.0.0.1', 12345))
+            thread = threading.Thread(target=receive_messages, args=(client,))
+            thread.start()
+            while True:
+                message = input("")
+                if message.lower() == 'exit':
+                    break
+                client.send(message.encode('utf-8'))
+            client.close()
+
+
+
+
+        </pre>
+    </div>
+    <script src="code.js"></script>
+</body>
+</html>
